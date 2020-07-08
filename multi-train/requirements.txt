@@ -1,0 +1,11 @@
+boto3
+matplotlib
+jupyter
+minio
+numpy
+pandas
+Pillow
+scikit-learn
+scipy
+virtualenv
+pydot
