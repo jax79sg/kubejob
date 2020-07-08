@@ -7,6 +7,7 @@ RUN wget https://github.com/wagoodman/bashful/releases/download/v0.0.10/bashful_
 RUN pip3 install -r requirements.txt
 ADD image_classification_multi.py /
 ADD s3utility.py /
+ADD download_datasets.py /
 ADD runall.yml /
 
 CMD ["bashful", "run","/runall.yml"]

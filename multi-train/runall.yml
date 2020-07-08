@@ -1,10 +1,12 @@
 
 tasks:
+    - name: download_datasets
+      cmd: python /download_datasets.py
     - name: training
-      parallel-tasks: 
-      - cmd: ls 
+      parallel-tasks:
       - cmd: python /image_classification_multi.py --expid 1 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.50 --epochs 1 --learning_rate 0.01
-      - cmd: python /image_classification_multi.py --expid 2 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.30 --epochs 1 --learning_rate 2.80
+      - cmd: python /image_classification_multi.py --expid 2 --batch_size 32 --image_size_h 60 --image_size_w 60 --buffer_size 32 --dropout 0.50 --epochs 1 --learning_rate 0.01
+      - cmd: python /image_classification_multi.py --expid 3 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.30 --epochs 1 --learning_rate 2.80
 
 
 

@@ -28,7 +28,9 @@ from tensorflow.keras import layers
 print(tf.__version__) 
 import os
 import argparse
-import s3utility
+from s3utility import s3_download_file
+from s3utility import s3_upload_file
+from s3utility import s3_upload_folder
 ## Load hyperparam from argparse
 
 argparser = argparse.ArgumentParser(description="Hyperparameters setup")
@@ -43,6 +45,21 @@ argparser.add_argument('--learning_rate',type=float)
 
 args = argparser.parse_args()
 
+import boto3
+from botocore.client import Config
+import os
+
+### Setup of S3 parameters 
+trainingbucket= os.environ['trainingbucket'] #'training'
+datasetsbucket= os.environ['datasetsbucket'] #'datasets'
+s3 = boto3.resource('s3',
+                    endpoint_url= os.environ['endpoint_url'] ,
+                    aws_access_key_id= os.environ['aws_access_key_id'] ,
+                    aws_secret_access_key= os.environ['aws_secret_access_key'],
+                    config=Config(signature_version= os.environ['signature_version']),
+                    region_name= os.environ['region_name'])
+
+
 ## Model Training hyperparameters
 expid=args.expid
 batch_size=args.batch_size
@@ -52,81 +69,6 @@ buffer_size=args.buffer_size
 dropout=args.dropout
 epochs=args.epochs
 learning_rate=args.learning_rate
-
-
-# ## Load the data: the Cats vs Dogs dataset from S3
-# 
-
-### Setup of S3 parameters and helper functions
-trainingbucket= os.environ['trainingbucket'] #'training'
-datasetsbucket= os.environ['datasetsbucket'] #'datasets'
-import boto3
-from botocore.client import Config
-s3 = boto3.resource('s3',
-                    endpoint_url= os.environ['endpoint_url'] ,
-                    aws_access_key_id= os.environ['aws_access_key_id'] ,
-                    aws_secret_access_key= os.environ['aws_secret_access_key'],
-                    config=Config(signature_version= os.environ['signature_version']),
-                    region_name= os.environ['region_name'])
-
-def s3_download_file(localfile,bucket,s3path):
-    print("S3 Download s3://"+bucket+"/" + s3path + " to " + localfile )
-    s3.Bucket(bucket).download_file(s3path,localfile)
-    
-def s3_upload_file(localfile,bucket,s3path):
-    print("S3 Uploading " + localfile + " to s3://"+bucket + s3path+localfile)
-    s3.Bucket(bucket).upload_file(localfile,s3path+localfile)
-    
-def s3_upload_folder(folder, bucket,s3path):
-    
-    from glob import glob
-    print("Processing folder")
-    for file in glob(folder+"/**/*",recursive=True):
-      if (os.path.isdir(file)) == False:  
-        print("Processing " + file)
-        s3_upload_file(bucket='training',localfile=file,s3path='')
-
-
-import os.path
-
-isFileExists=os.path.isfile("kagglecatsanddogs_3367a.zip")
-if not isFileExists:
-   s3_download_file(localfile='kagglecatsanddogs_3367a.zip',bucket=datasetsbucket,s3path='kagglecatsanddogs_3367a.zip')
-
-isDirExists=os.path.isdir("PetImages")
-if not isDirExists:
-   from zipfile import ZipFile
-   with ZipFile('kagglecatsanddogs_3367a.zip', 'r') as zipObj:
-      # Extract all the contents of zip file in current directory
-      zipObj.extractall()
-
-# ### Filter out corrupted images
-# 
-# When working with lots of real-world image data, corrupted images are a common
-# occurence. Let's filter out badly-encoded images that do not feature the string "JFIF"
-#  in their header.
-# 
-
-
-import os
-
-num_skipped = 0
-for folder_name in ("Cat", "Dog"):
-    folder_path = os.path.join("PetImages", folder_name)
-    for fname in os.listdir(folder_path):
-        fpath = os.path.join(folder_path, fname)
-        try:
-            fobj = open(fpath, "rb")
-            is_jfif = tf.compat.as_bytes("JFIF") in fobj.peek(10)
-        finally:
-            fobj.close()
-
-        if not is_jfif:
-            num_skipped += 1
-            # Delete corrupted image
-            os.remove(fpath)
-
-print("Deleted %d images" % num_skipped)
 
 
 
@@ -327,12 +269,12 @@ model.save(expid+"_catdogclassification_model")
 import json
 with open(expid+'_catdogclassification.json', 'w') as fp:
     json.dump(history.history, fp)
-s3_upload_file(bucket=trainingbucket,localfile=expid+'_catdogclassification.json',s3path='')
+s3_upload_file(s3=s3,bucket=trainingbucket,localfile=expid+'_catdogclassification.json',s3path='')
 
-s3_upload_folder(bucket=trainingbucket,folder=expid+'_catdogclassification_model',s3path='')
+s3_upload_folder(s3=s3, bucket=trainingbucket,folder=expid+'_catdogclassification_model',s3path='')
 
 for epochrun in range(epochs):
-    s3_upload_file(bucket=trainingbucket,localfile=expid+'_catdogclassification_save_at_'+str(epochrun+1)+'.h5',s3path='')
+    s3_upload_file(s3=s3, bucket=trainingbucket,localfile=expid+'_catdogclassification_save_at_'+str(epochrun+1)+'.h5',s3path='')
 
 
 # We get to ~96% validation accuracy after training for 50 epochs on the full dataset.
