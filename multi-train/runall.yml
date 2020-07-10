@@ -4,17 +4,9 @@ tasks:
       cmd: python /download_datasets.py
     - name: training
       parallel-tasks:
-      - cmd: python /image_classification_multi.py --expid 1 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.50 --epochs 1 --learning_rate 0.01
-      - cmd: python /image_classification_multi.py --expid 2 --batch_size 32 --image_size_h 60 --image_size_w 60 --buffer_size 32 --dropout 0.50 --epochs 1 --learning_rate 0.01
+      - cmd: python /image_classification_multi.py --expid 1 --batch_size 128 --image_size_h 30 --image_size_w 30 --buffer_size 128 --dropout 0.50 --epochs 1 --learning_rate 0.01
       - cmd: python /image_classification_multi.py --expid 3 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.30 --epochs 1 --learning_rate 2.80
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -23,7 +15,7 @@ config:
     bullet-char: "-"
 
     # hide all child tasks after task section completion
-    collapse-on-completion: false
+    collapse-on-completion: true
 
     # change the colors of the vertical progress bar for a task in a particular state.
     # this should be a number from the 256 color palette.
@@ -44,10 +36,10 @@ config:
     show-failure-report: true
 
     # show/hide the last summary line (showing % complete, number of tasks ran, eta, etc)
-    show-summary-footer: true
+    show-summary-footer: false
 
     # show/hide the number of tasks that have failed in the summary footer line
-    show-summary-errors: true
+    show-summary-errors: false
 
     # show/hide the number of tasks completed thus far on the summary footer line
     show-summary-steps: true
@@ -59,10 +51,10 @@ config:
     show-task-output: true
 
     # Show an eta for each task on the screen (being shown on every line with a command running)
-    show-task-times: true
+    show-task-times: false
 
     # Show only one line of output to the screen (instead of a line per task + a summary line)
-    single-line: false
+    single-line: true
 
     # globally enable/disable haulting further execution when any one task fails
     stop-on-failure: true

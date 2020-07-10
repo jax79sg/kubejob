@@ -9,6 +9,7 @@ ADD image_classification_multi.py /
 ADD s3utility.py /
 ADD download_datasets.py /
 ADD runall.yml /
+ADD runall.sh /
 
-CMD ["bashful", "run","/runall.yml"]
+#CMD ["bashful", "run","/runall.yml"]
 

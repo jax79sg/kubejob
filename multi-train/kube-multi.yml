@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+   name: multi-train
+spec:
+   #template:
+   #  spec:
+         containers:
+         - name: test-image-classification-multi
+           image: "myregistry.com:5000/image-classification-multi"
+           tty: true
+           env:
+           - name: SHELL
+             value: "/bin/bash"
+           - name: CUDA_VISIBLE_DEVICES
+             value: "-1"
+           - name: trainingbucket
+             value: training
+           - name: datasetsbucket
+             value: datasets
+           - name: endpoint_url
+             value: http://192.168.56.102:9001
+           - name: aws_access_key_id
+             value: minio
+           - name: aws_secret_access_key
+             value: minio123
+           - name: signature_version
+             value: s3v4
+           - name: region_name
+             value: us-east-1
+           resources:
+              requests:
+                 cpu: "1"
+                 memory: "1Gi"
+           #command: ["bashful", "run","/runall.yml"]
+           command: ["/runall.sh"]
+         restartPolicy: Never
