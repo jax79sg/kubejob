@@ -6,5 +6,6 @@ For most of us, we have been building and training our models on our own GPU ena
 Following this article, you should get acquainted with the use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores.
 
 ## Overview: Preparation to Running the training
+1. 
 ## Step-by-Step
 ## Looking forward
