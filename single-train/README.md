@@ -6,6 +6,21 @@ For most of us, we have been building and training our models on our own GPU ena
 Following this article, you should get acquainted with the use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores.
 
 ## Overview: Preparation to Running the training
-1. 
+
+### Prerequisites
+1. A client machine configured to connect to the Kubernetes cluster is available.
+2. Docker installed on your own computer
+
+### On your own computer
+1. Prepare your training codes
+2. Prepare Dockerfile
+3. Build a docker image
+4. Export/Save the docker image as a file
+
+### On the Kubernetes client
+1. Load the docker image file as a docker image
+2. Push the docker image to the Docker Registry
+3. Run the job on kubernetes
+
 ## Step-by-Step
 ## Looking forward
