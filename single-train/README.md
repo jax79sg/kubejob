@@ -206,6 +206,30 @@ docker save image-classification-single -o image-classification-single.tar
 Now transfer the docker image to Kubernetes client
 
 ### On the Kubernetes client
+#### Upload datasets onto S3
+On the Kubernetes client, a MINIO client (commandline) has been configured for you to manage your buckets. 
+In this example, the following command would have been executed.
+```bash
+/home/user/mc mb myminio/datasets
+/home/user/mc cp kagglecatsanddogs_3367a.zip myminio/datasets/kagglecatsanddogs_3367a.zip
+```
+Some basic usage of the commmands are as follows.
+
+To create a new bucket, run the following command.
+```bash
+/home/user/mc mb myminio/mynewbucket
+```
+To upload a folders or files, run the following command.
+```bash
+/home/user/mc cp mylocalfolderorfile myminio/mynewbucket/
+```
+To download a folder or file, run the following command.
+```bash
+/home/user/mc cp myminio/mynewbucket/myremotefolderorfile mylocalfolderorfile
+```
+
+#### Load the docker image file as a docker image
+#### Push the docker image to the Docker Registry
 #### Prepare kubernetes job yaml file
 The final step of preparation is to create a Kubernetes yaml file.
 ```bash
@@ -242,9 +266,6 @@ spec:
          restartPolicy: Never
 ```
 The above yml will be used to submit a job to Kubernetes. For your own setup, you would enter the image that you
-#### Upload datasets onto S3
-#### Load the docker image file as a docker image
-#### Push the docker image to the Docker Registry
 #### Run the job yaml file
 
 ## Looking forward
