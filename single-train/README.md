@@ -128,12 +128,12 @@ You see something similar to the following outpu
 Removing intermediate container d941290dff33
  ---> 3793f6e38a2f
 Successfully built 3793f6e38a2f
-Successfully tagged mydockerimage:latest
+Successfully tagged image-classification-single:latest
 ```
 You can run `docker images` and see the docker image listed.
 ```bash
 REPOSITORY                                        TAG                              IMAGE ID            CREATED             SIZE
-mydockerimage                                     latest                           3793f6e38a2f        2 minutes ago       3.49GB
+image-classification-single                       latest                           3793f6e38a2f        2 minutes ago       3.49GB
 ```
 At this point, you can run the docker image on your own computer and run the training. This is the closest to which how it will run on kubernetes. Successfullying running this step will ensure that your image will most likely run properly on kubernetes.
 ```bash
