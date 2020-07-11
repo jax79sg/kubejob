@@ -44,6 +44,7 @@ Your training codes should consist mainly of 3 parts.
 1. Downloading of datasets from S3
 2. Preprocessing and training of model
 3. Uploading of models and results data to S3
+
 A sample of the training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The premise of this code is such that the zipped datasets would be downloaded and then extracted for processing. Your situation could be different, please exercise your own considerations.
 
 To pull the data and to save the results, you would need to do it on a shared external storage. A temporary MINIO S3 server has been setup in the AI Platform, your training codes should pull and save the data there. The following extracts the related codes.
