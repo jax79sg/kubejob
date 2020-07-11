@@ -23,14 +23,14 @@ This example uses a 3rd party end to end image classification code. The code is 
 2. Prepare Dockerfile file
 3. Build a docker image
 4. Export/Save the docker image as a file
-5. Prepare kubernetes job yaml file
-6. Transfer to Kubernetes client
+5. Transfer to Kubernetes client
 
 ### On the Kubernetes client
 0. Load datasets onto S3
 1. Load the docker image file as a docker image
 2. Push the docker image to the Docker Registry
-3. Run the job yaml file
+3. Prepare kubernetes job yaml file
+4. Run the job yaml file
 
 ## Step-by-Step
 ### On your own computer
@@ -145,7 +145,7 @@ docker run -it --gpus all --env-file env.list image-classification-single python
 
 `python3 /image_classification_single.py` is the command to run your training script
 
-When you run the command, you would see something like following
+When you run the command, you would see something like following (*Note that this script ensures only 1 epoch is run for testing sake*)
 ```bash
 2020-07-11 13:45:41.014731: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
 2.4.0-dev20200705
@@ -199,12 +199,49 @@ S3 Uploading catdogclassification_model/variables/variables.index to s3://traini
 S3 Uploading catdogclassification_save_at_1.h5 to s3://trainingcatdogclassification_save_at_1.h5
 ```
 #### Export/Save the docker image as a file
-
-
-#### Prepare kubernetes job yaml file
-#### Transfer to Kubernetes client
+The above steps ensured that you have a running training script that will work on Docker. The next step is to export the docker image so you can transfer it to the Kubernetes client.
+```bash
+docker save image-classification-single -o image-classification-single.tar
+```
+Now transfer the docker image to Kubernetes client
 
 ### On the Kubernetes client
+#### Prepare kubernetes job yaml file
+The final step of preparation is to create a Kubernetes yaml file.
+```bash
+apiVersion: v1
+kind: Pod
+metadata:
+   name: single-train
+spec:
+         containers:
+         - name: test-image-classification-single
+           image: "myregistry.com:5000/image-classification-single"
+           env:
+           - name: CUDA_VISIBLE_DEVICES
+             value: "-1"
+           - name: trainingbucket
+             value: training
+           - name: datasetsbucket
+             value: datasets
+           - name: endpoint_url
+             value: http://192.168.56.102:9001
+           - name: aws_access_key_id
+             value: minio
+           - name: aws_secret_access_key
+             value: minio123
+           - name: signature_version
+             value: s3v4
+           - name: region_name
+             value: us-east-1
+           resources:
+              requests:
+                 cpu: "1"
+                 memory: "2Gi"
+           command: ["python3","/image_classification_single.py"]
+         restartPolicy: Never
+```
+The above yml will be used to submit a job to Kubernetes. For your own setup, you would enter the image that you
 #### Upload datasets onto S3
 #### Load the docker image file as a docker image
 #### Push the docker image to the Docker Registry
