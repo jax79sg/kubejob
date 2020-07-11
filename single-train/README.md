@@ -119,6 +119,7 @@ Next i would want to copy all the stuff i want into the docker image. We accompl
 Now, we have the files we need, but the codes won't run without the dependancies. It depends heavily on your training codes, it may require both OS and python dependancies. In this example, i only need graphviz and to install some python packages. To this end, you can use the `RUN` command. For example, i want to install all the python packges in my requirement.txt that i added earlier, i will use `RUN pip3 install -r requirements.txt`.
 
 #### Build a docker image
+So we have the 
 #### Export/Save the docker image as a file
 #### Prepare kubernetes job yaml file
 #### Transfer to Kubernetes client
