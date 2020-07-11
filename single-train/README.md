@@ -112,7 +112,7 @@ RUN apt update && \
 RUN pip3 install -r requirements.txt
 ```
 
-Most Dockerfiles start off with a baseline image. There are a lot of images on (DockerHub)[https://hub.docker.com/] and chances are that there's one that fits your purpose. Take for example, in my case i wanted to use the latest Tensorflow with GPU support. Instead of creating a setup with CUDA and go through all the installation headache, i would simply use a pre-made docker image by Tensorflow, complete with CUDA and all. So i create a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu`. 
+Most Dockerfiles start off with a baseline image. There are a lot of images on [DockerHub](https://hub.docker.com/) and chances are that there's one that fits your purpose. Take for example, in my case i wanted to use the latest Tensorflow with GPU support. Instead of creating a setup with CUDA and go through all the installation headache, i would simply use a pre-made docker image by Tensorflow, complete with CUDA and all. So i create a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu`. 
 
 Next i would want to copy all the stuff i want into the docker image. We accomplish this with the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path that i want to put inside docker. So it will look something like `ADD requirements.txt /`. 
 
