@@ -34,9 +34,15 @@ Following this article, you will get acquainted with very basic use of Docker an
 ## Step-by-Step
 ### On your own computer
 #### Prepare your datasets
-As you would be loading your datasets into S3 via a network connection, it is generally more efficient if you transfer files as a zipped archive rather than individual files. So do zip up your datasets if you can. However, if you have extremely large datasets, or structured data in databases, you should prepare the data in their native form.
+As we are submiting the jobs to the network for training, it means that your datasets needs to be accessible by several computers on the network via a shared storage. On the AI Platform, the following would be made available, S3, NFS and Hadoop. In this article, we will demonstrate with the use of S3 storage as it can cater to both structured and unstructured data.
+
+We would be loading datasets into S3 via a network connection, so its generally more efficient if you transfer files as a zipped archive rather than thousands of individual files unless your training codes do it differently. Do zip up your datasets if you can, however, if you have extremely large datasets, or structured data in databases, you can prepare the data in their native forms.
 
 #### Prepare your training codes
+Your training codes should consist mainly of 3 parts.
+1. Downloading of datasets from S3
+2. Preprocessing and training of model
+3. Uploading of models and results data to S3
 A sample of the training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The premise of this code is such that the zipped datasets would be downloaded and then extracted for processing. Your situation could be different, please exercise your own considerations.
 
 To pull the data and to save the results, you would need to do it on a shared external storage. A temporary MINIO S3 server has been setup in the AI Platform, your training codes should pull and save the data there. The following extracts the related codes.
