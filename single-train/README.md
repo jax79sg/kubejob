@@ -94,5 +94,16 @@ for epochrun in range(epochs):
     s3_upload_file(bucket=trainingbucket,localfile='catdogclassification_save_at_'+str(epochrun+1)+'.h5',s3path='')
 
 ```
+#### Prepare Dockerfile file
+#### Build a docker image
+#### Export/Save the docker image as a file
+#### Prepare kubernetes job yaml file
+#### Transfer to Kubernetes client
+
+### On the Kubernetes client
+#### Upload datasets onto S3
+#### Load the docker image file as a docker image
+#### Push the docker image to the Docker Registry
+#### Run the job yaml file
 
 ## Looking forward
