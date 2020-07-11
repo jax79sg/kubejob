@@ -299,3 +299,4 @@ kubectl logs single-train
 ## Looking forward
 The above is a very simple example to demonstrate the use of Docker and Kubernetes. However, running a single training on a 32GB V100 GPU card is not efficient. The next article demonstrates how this same example can be enhanced to support some form of hyperparameter tuning (E.g. Running several training jobs with different hyperparamters concurrently, as long as the total GPU ram is not exceeded).
 
+The above example is one of many possible ways to utilise Kubernetes for our AI development. If you have an interesting idea, please feel free to share it on our Slack page.
