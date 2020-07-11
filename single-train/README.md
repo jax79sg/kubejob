@@ -284,6 +284,7 @@ kubectl apply -f kube-single.yml
 ```
 The output would be similar to following.
 ```bash
+pod/single-train created
 ```
 
 When a kubernetes job has been successfully submited, you can monitor 2 things, as indicated below.
