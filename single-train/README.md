@@ -227,9 +227,13 @@ To download a folder or file, run the following command.
 ```bash
 /home/user/mc cp myminio/mynewbucket/myremotefolderorfile mylocalfolderorfile
 ```
-
-#### Load the docker image file as a docker image
 #### Push the docker image to the Docker Registry
+The docker image file that we copied over from our own computer needs to be loaded into the Docker Registry on the AI Platform.
+```bash
+docker load -i image-classification-single.tar #Loads the tar file (docker image) into the client's local docker repo.
+docker tag image-classification-single dockrepo.dh.gov.sg:5000/image-classification-single:latest #Tag the uploaded image to bear the url to the AI Platorm's Docker Rgistry.
+docker push dockrepo.dh.gov.sg/image-classification-single:latest #Send the image from local Docker to the AI Platform's docker registry.
+```
 #### Prepare kubernetes job yaml file
 The final step of preparation is to create a Kubernetes yaml file.
 ```bash
@@ -240,32 +244,58 @@ metadata:
 spec:
          containers:
          - name: test-image-classification-single
-           image: "myregistry.com:5000/image-classification-single"
+           image: dhrepo.dh.gov.sg:5000/image-classification-single"
            env:
-           - name: CUDA_VISIBLE_DEVICES
-             value: "-1"
            - name: trainingbucket
              value: training
            - name: datasetsbucket
              value: datasets
            - name: endpoint_url
-             value: http://192.168.56.102:9001
+             value: http://minio.dsta.ai:9001
            - name: aws_access_key_id
-             value: minio
+             value: user
            - name: aws_secret_access_key
-             value: minio123
+             value: password
            - name: signature_version
              value: s3v4
            - name: region_name
              value: us-east-1
            resources:
               requests:
-                 cpu: "1"
+                 cpu: "2"
                  memory: "2Gi"
            command: ["python3","/image_classification_single.py"]
          restartPolicy: Never
 ```
-The above yml will be used to submit a job to Kubernetes. For your own setup, you would enter the image that you
+The above yml is a minimal yaml required for this example, with the important ones stated below.
+
+`image` - Specify the image of that the job will run.
+
+`env` - List the environment variables required to pass to the container.
+
+`requests` - Minimum resources required for this container to run
+
+`command` - command to run the script
+
 #### Run the job yaml file
+Lastly, run the job submission.
+```bash
+kubectl apply -f kube-single.yml
+```
+The output would be similar to following.
+```bash
+```
+
+When a kubernetes job has been successfully submited, you can monitor 2 things, as indicated below.
+Following command will display the pod that are in Kubernetes. The pod name takes after the `meta-data > name` in the yaml file.
+```bash
+kubectl get pods
+```
+The following command will display the running stdout of the pod that you just created. The output should be similar to the docker run output above.
+```bash
+kubectl logs single-train
+```
 
 ## Looking forward
+The above is a very simple example to demonstrate the use of Docker and Kubernetes. However, running a single training on a 32GB V100 GPU card is not efficient. The next article demonstrates how this same example can be enhanced to support some form of hyperparameter tuning (E.g. Running several training jobs with different hyperparamters concurrently, as long as the total GPU ram is not exceeded).
+
