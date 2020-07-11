@@ -45,17 +45,21 @@ Your training codes should consist mainly of 3 parts.
 2. Preprocessing and training of model
 3. Uploading of models and results data to S3
 
-A sample of the training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The premise of this code is such that the zipped datasets would be downloaded and then extracted for processing. Your situation could be different, please exercise your own considerations.
+Finally make sure your codes can run and train for at least an epoch to verify its working.
 
-To pull the data and to save the results, you would need to do it on a shared external storage. A temporary MINIO S3 server has been setup in the AI Platform, your training codes should pull and save the data there. The following extracts the related codes.
+A sample of a training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The only change to this code is such that the zipped datasets would be downloaded from S3 and then extracted for processing, and then the model and results saved in S3. Your situation could be different, please exercise your own considerations. (See Wei Deng's article in part X for load-in-memory example)
 
-This setups the helper codes and pulls the relevant parameters about the S3. 
+A temporary MINIO S3 server has been setup in the AI Platform, your training codes should pull and save the data there. The following extracts the related codes from the above example. This setups the helper codes and pulls the relevant parameters about the S3. 
 The parameters are to be sent into the environment variables. You may also hard code the variables if that suits you, but i would encourage you to use either environment variables or argparse.
 ```python
 ### Setup of S3 parameters and helper functions
+
+#Names of the buckets
 trainingbucket= os.environ['trainingbucket'] #'training'
 datasetsbucket= os.environ['datasetsbucket'] #'datasets'
-import boto3
+
+
+import boto3 #boto3 is S3 client from AWS
 from botocore.client import Config
 s3 = boto3.resource('s3',
                     endpoint_url= os.environ['endpoint_url'] ,
@@ -97,6 +101,23 @@ for epochrun in range(epochs):
 
 ```
 #### Prepare Dockerfile file
+Now that you have your codes ready and tested locally, its time to dockerize it. Its really easy to create a Docker image, all you need is Docker installed, gather the files you want in the docker image and to create a simple file called Dockerfile. A Dockerfile is declarative, and each command is only processed after you run `Docker build`.
+The following is an example of a Dockerfile
+```Dockerfile
+FROM tensorflow/tensorflow:nightly-gpu
+ADD requirements.txt /
+ADD image_classification_single.py / 
+RUN apt update && \
+    apt install -y  software-properties-common build-essential graphviz 
+RUN pip3 install -r requirements.txt
+```
+
+Most Dockerfiles start off with a baseline image. There are a lot of images on (DockerHub)[https://hub.docker.com/] and chances are that there's one that fits your purpose. Take for example, in my case i wanted to use the latest Tensorflow with GPU support. Instead of creating a setup with CUDA and go through all the installation headache, i would simply use a pre-made docker image by Tensorflow, complete with CUDA and all. So i create a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu`. 
+
+Next i would want to copy all the stuff i want into the docker image. We accomplish this with the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path that i want to put inside docker. So it will look something like `ADD requirements.txt /`. 
+
+Now, we have the files we need, but the codes won't run without the dependancies. It depends heavily on your training codes, it may require both OS and python dependancies. In this example, i only need graphviz and to install some python packages. To this end, you can use the `RUN` command. For example, i want to install all the python packges in my requirement.txt that i added earlier, i will use `RUN pip3 install -r requirements.txt`.
+
 #### Build a docker image
 #### Export/Save the docker image as a file
 #### Prepare kubernetes job yaml file
