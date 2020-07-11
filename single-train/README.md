@@ -1,5 +1,5 @@
 # Kubernetes Series - Part I.
-# Training a Open Source ML/DL model on AI Platform.
+# A simple example of training a Open Source ML/DL model on AI Platform.
 For a lot of us, we have been building and/or training our models on our own GPU enabled machines. Our single GPU enabled machines at best can cater up to 11GB of RAM, while this is sufficient for smaller models, its a challenge if we want to train larger models from scratch (E.g. BERT). Other than the scale, the speed of training on Ti1080s and RTX2080s are limited, so moving the training onto Kubernetes where V100 GPUs are available will significantly improve the above.
 
 ## Who should try this?
@@ -9,7 +9,7 @@ If you have a Deep Learning architecture you got from someone or pulled from ope
 For those who are regularly developing their codes in Docker, this would be very apt for them as well. The advantage of developing DL models in Docker is that they highly flexible when it comes to using different frameworks and versions. For example, you don't have to crack your head on different versions of CUDA on your machine, just make sure you have a docker for every version. Most times, you don't even have to worry about this as the frameworks such as Tensorflow come with their own docker images anyway.
 
 ## What will be achieved at the end of this article?
-Following this article, you will get acquainted with very basic use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores.
+This example uses a 3rd party end to end image classification code. The code is customised to download dataset frmo S3 onto itself and also to upload model checkpoints and final results onto S3 after training. By the end of this article, you will get acquainted with very basic use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores.
 
 ## Overview: Preparation and then the model training
 
@@ -47,7 +47,7 @@ Your training codes should consist mainly of 3 parts.
 
 Finally make sure your codes can run and train for at least an epoch to verify its working.
 
-A sample of a training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The only change to this code is such that the zipped datasets would be downloaded from S3 and then extracted for processing, and then the model and results saved in S3. Your situation could be different, please exercise your own considerations. (See Wei Deng's article in part X for load-in-memory example)
+A sample of a training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The only change to this code to the original is such that the zipped datasets would be downloaded from S3 and then extracted for processing, after training, the model and results are saved in S3. Your situation could be different, please exercise your own considerations. 
 
 A temporary MINIO S3 server has been setup in the AI Platform, your training codes should pull and save the data there. The following extracts the related codes from the above example. This setups the helper codes and pulls the relevant parameters about the S3. 
 The parameters are to be sent into the environment variables. You may also hard code the variables if that suits you, but i would encourage you to use either environment variables or argparse.
@@ -101,8 +101,8 @@ for epochrun in range(epochs):
 
 ```
 #### Prepare Dockerfile file
-Now that you have your codes ready and tested locally, its time to dockerize it. Its really easy to create a Docker image, all you need is Docker installed, gather the files you want in the docker image and to create a simple file called Dockerfile. A Dockerfile is declarative, and each command is only processed after you run `Docker build`.
-The following is an example of a Dockerfile
+Now that you have your codes ready and tested locally, its time to dockerize it. Its really easy to create a Docker image, all you need is Docker installed, gather the files you want in the docker image and to create a simple file called Dockerfile. A Dockerfile is declarative, and the commands are only processed after you run `docker build`.
+The following is the Dockerfile for this example.
 ```Dockerfile
 FROM tensorflow/tensorflow:nightly-gpu
 ADD requirements.txt /
@@ -111,16 +111,93 @@ RUN apt update && \
     apt install -y  software-properties-common build-essential graphviz 
 RUN pip3 install -r requirements.txt
 ```
+Most Dockerfiles start off with a baseline image. There are a lot of images on [DockerHub](https://hub.docker.com/) and chances are that there's one that fits your purpose. Take for example, in this case the latest Tensorflow with GPU support is desired. Instead of creating a setup with CUDA and go through all the installation headache, a pre-made docker image by Tensorflow complete with CUDA and all is used instead. To do this, a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu` is used. 
 
-Most Dockerfiles start off with a baseline image. There are a lot of images on [DockerHub](https://hub.docker.com/) and chances are that there's one that fits your purpose. Take for example, in my case i wanted to use the latest Tensorflow with GPU support. Instead of creating a setup with CUDA and go through all the installation headache, i would simply use a pre-made docker image by Tensorflow, complete with CUDA and all. So i create a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu`. 
+Next, copy all the stuff required into the docker image by using the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path inside the docker image (The folders will be created automatically if it doesn't exists). So it will look something like `ADD requirements.txt /`. 
 
-Next i would want to copy all the stuff i want into the docker image. We accomplish this with the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path that i want to put inside docker. So it will look something like `ADD requirements.txt /`. 
-
-Now, we have the files we need, but the codes won't run without the dependancies. It depends heavily on your training codes, it may require both OS and python dependancies. In this example, i only need graphviz and to install some python packages. To this end, you can use the `RUN` command. For example, i want to install all the python packges in my requirement.txt that i added earlier, i will use `RUN pip3 install -r requirements.txt`.
+The codes won't run without the dependancies. In this example, graphviz and some python packages are quired. To this end, you can use the `RUN` command. For this  example, use `RUN pip3 install -r requirements.txt`. After this is acheived, you may proceed to build the image.
 
 #### Build a docker image
-So we have the 
+To build the image with the docker file, you need to run the following command in the same folder where Dockerfile is located.
+In this example, under the `kubejob/single-train` folder.
+```bash
+docker build .t image-classification-single
+```
+You see something similar to the following outpu
+```bash
+Removing intermediate container d941290dff33
+ ---> 3793f6e38a2f
+Successfully built 3793f6e38a2f
+Successfully tagged mydockerimage:latest
+```
+You can run `docker images` and see the docker image listed.
+```bash
+REPOSITORY                                        TAG                              IMAGE ID            CREATED             SIZE
+mydockerimage                                     latest                           3793f6e38a2f        2 minutes ago       3.49GB
+```
+At this point, you can run the docker image on your own computer and run the training. This is the closest to which how it will run on kubernetes. Successfullying running this step will ensure that your image will most likely run properly on kubernetes.
+```bash
+docker run -it --gpus all --env-file env.list image-classification-single python3 /image_classification_single.py
+```
+`--gpus all` directs docker to use the GPU (provided nvidia-docker is installed)
+`--env-file env.list` loads the environment variables (S3 parameters) into the docker container.
+`python3 /image_classification_single.py` is the command to run your training script
+When you run the command, you would see something like following
+```bash
+2020-07-11 13:45:41.014731: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2.4.0-dev20200705
+S3 Download s3://datasets/kagglecatsanddogs_3367a.zip to kagglecatsanddogs_3367a.zip
+Deleted 1590 images
+Found 23410 files belonging to 2 classes.
+Using 18728 files for training.
+2020-07-11 13:45:51.001862: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
+2020-07-11 13:45:51.005333: E tensorflow/stream_executor/cuda/cuda_driver.cc:314] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2020-07-11 13:45:51.005350: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:169] retrieving CUDA diagnostic information for host: 7c20885796ae
+2020-07-11 13:45:51.005355: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:176] hostname: 7c20885796ae
+2020-07-11 13:45:51.005777: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:200] libcuda reported version is: 440.100.0
+2020-07-11 13:45:51.005818: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:204] kernel reported version is: 440.100.0
+2020-07-11 13:45:51.005825: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:310] kernel version seems to match DSO: 440.100.0
+2020-07-11 13:45:51.006963: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2020-07-11 13:45:51.036899: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2592000000 Hz
+2020-07-11 13:45:51.038416: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x438ea80 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-07-11 13:45:51.038456: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+Found 23410 files belonging to 2 classes.
+Using 4682 files for validation.
+Corrupt JPEG data: 2226 extraneous bytes before marker 0xd9
+108/293 [==========>...................] - ETA: 22s - loss: 0.6661 - accuracy: 0.6215Corrupt JPEG data: 228 extraneous bytes before marker 0xd9
+119/293 [===========>..................] - ETA: 20s - loss: 0.6637 - accuracy: 0.6241Warning: unknown JFIF revision number 0.00
+149/293 [==============>...............] - ETA: 17s - loss: 0.6568 - accuracy: 0.6288Corrupt JPEG data: 128 extraneous bytes before marker 0xd9
+154/293 [==============>...............] - ETA: 16s - loss: 0.6547 - accuracy: 0.6313Corrupt JPEG data: 65 extraneous bytes before marker 0xd9
+160/293 [===============>..............] - ETA: 15s - loss: 0.6526 - accuracy: 0.6335Corrupt JPEG data: 396 extraneous bytes before marker 0xd9
+163/293 [===============>..............] - ETA: 15s - loss: 0.6526 - accuracy: 0.6342Corrupt JPEG data: 239 extraneous bytes before marker 0xd9
+293/293 [==============================] - ETA: 0s - loss: 0.6259 - accuracy: 0.6564Corrupt JPEG data: 252 extraneous bytes before marker 0xd9
+Corrupt JPEG data: 1153 extraneous bytes before marker 0xd9
+Corrupt JPEG data: 162 extraneous bytes before marker 0xd9
+Corrupt JPEG data: 214 extraneous bytes before marker 0xd9
+Corrupt JPEG data: 99 extraneous bytes before marker 0xd9
+Corrupt JPEG data: 1403 extraneous bytes before marker 0xd9
+293/293 [==============================] - 39s 133ms/step - loss: 0.6259 - accuracy: 0.6564 - val_loss: 0.6948 - val_accuracy: 0.5043
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/tensorflow/python/training/tracking/tracking.py:111: Model.state_updates (from tensorflow.python.keras.engine.training) is deprecated and will be removed in a future version.
+Instructions for updating:
+This property should not be used in TensorFlow 2.0, as updates are applied automatically.
+2020-07-11 13:46:35.042243: W tensorflow/python/util/util.cc:348] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/tensorflow/python/training/tracking/tracking.py:111: Layer.updates (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+This property should not be used in TensorFlow 2.0, as updates are applied automatically.
+S3 Uploading catdogclassification.json to s3://trainingcatdogclassification.json
+Processing folder
+Processing catdogclassification_model/saved_model.pb
+S3 Uploading catdogclassification_model/saved_model.pb to s3://trainingcatdogclassification_model/saved_model.pb
+Processing catdogclassification_model/variables/variables.data-00000-of-00001
+S3 Uploading catdogclassification_model/variables/variables.data-00000-of-00001 to s3://trainingcatdogclassification_model/variables/variables.data-00000-of-00001
+Processing catdogclassification_model/variables/variables.index
+S3 Uploading catdogclassification_model/variables/variables.index to s3://trainingcatdogclassification_model/variables/variables.index
+S3 Uploading catdogclassification_save_at_1.h5 to s3://trainingcatdogclassification_save_at_1.h5
+```
 #### Export/Save the docker image as a file
+
+
 #### Prepare kubernetes job yaml file
 #### Transfer to Kubernetes client
 
