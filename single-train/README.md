@@ -140,8 +140,11 @@ At this point, you can run the docker image on your own computer and run the tra
 docker run -it --gpus all --env-file env.list image-classification-single python3 /image_classification_single.py
 ```
 `--gpus all` directs docker to use the GPU (provided nvidia-docker is installed)
+
 `--env-file env.list` loads the environment variables (S3 parameters) into the docker container.
+
 `python3 /image_classification_single.py` is the command to run your training script
+
 When you run the command, you would see something like following
 ```bash
 2020-07-11 13:45:41.014731: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
