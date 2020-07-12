@@ -281,9 +281,7 @@ The above yml is a minimal yaml required for this example, with the important on
 Lastly, run the job submission.
 ```bash
 kubectl apply -f kube-single.yml
-```
-The output would be similar to following.
-```bash
+------
 pod/single-train created
 ```
 
