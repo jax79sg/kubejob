@@ -1,5 +1,5 @@
 # Training a Open Source ML/DL model on AI Platform (Kubernetes) - Part II.
-Part I of this two part article series demonstrates a very simple example that runs a single iteration of a training model. In reality, this is very inefficient as most model training we have doesn't take up an entire GPU resources that the AI Platform offers (V100, 32GB). This article will demonstrate how to better utilise a single V100 GPU when submiting a job to Kubernetes. 
+Part I of this two part article series demonstrates a very simple example that runs a single iteration of a training model. In reality, this is very inefficient as most model training we have doesn't take up an entire GPU resources that the AI Platform offers (V100, 32GB). This article will demonstrate how to better utilise a single V100 GPU when submiting a job to Kubernetes. This example is created based on the possibility to load multiple CUDA programs to run on the same GPU, albeit with questionable speed depending on your model's complexity.
 
 Note that this article can be followed through without going through Part I. The additional remarks that are unique in Part II are highlighted in _**italic bold**_.
 
@@ -114,12 +114,13 @@ tasks:
       - cmd: python /image_classification_multi.py --expid 1 --batch_size 128 --image_size_h 30 --image_size_w 30 --buffer_size 128 --dropout 0.50 --epochs 1 --learning_rate 0.01
       - cmd: python /image_classification_multi.py --expid 3 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.30 --epochs 1 --learning_rate 2.80
 ```
-_**In the above yml, there are 2 main tasks, namely `download_datasets` and `training`. These are by default configured to execute sequentially. In the `training` task, there are 2 parallel sub tasks configured. Its essentially the script to run the training, which provided different hyperparamters. In a separate test, it is known that each training will take up about 7GB of GPU RAM. Thus you may run up to 4 parallel trainings (32mod7). Please note that the env variable TF_FORCE_GPU_ALLOW_GROWTH must be set to True if you are using Tensorflow so that not all the RAM is allocated to one process **_
+_**In the above yml, there are 2 main tasks, namely `download_datasets` and `training`. These are by default configured to execute sequentially. In the `training` task, there are 2 parallel sub tasks configured. Its essentially the script to run the training, which provided different hyperparamters. Say it is known that each model training will take up about 7GB of GPU RAM, you may run up to 4 parallel trainings (32mod7). Please note that the env variable TF_FORCE_GPU_ALLOW_GROWTH must be set to True if you are using Tensorflow so that not all the RAM is allocated to one process **_
 
 #### Prepare Dockerfile file
 Now that you have your codes ready and tested locally, its time to dockerize it. Its really easy to create a Docker image, all you need is Docker installed, gather the files you want in the docker image and to create a simple file called Dockerfile. A Dockerfile is declarative, and the commands are only processed after you run `docker build`.
 The following is the Dockerfile for this example.
-_**```Dockerfile
+_**
+```Dockerfile
 FROM tensorflow/tensorflow:nightly-gpu
 ADD requirements.txt /
 RUN apt update && \
@@ -130,12 +131,14 @@ RUN pip3 install -r requirements.txt
 ADD image_classification_multi.py /
 ADD s3utility.py /
 ADD download_datasets.py /
-ADD runall.yml /
+ADD bashful.yml /
 ADD runall.sh /
-```**_
+```
+**_
+
 Most Dockerfiles start off with a baseline image. There are a lot of images on [DockerHub](https://hub.docker.com/) and chances are that there's one that fits your purpose. Take for example, in this case the latest Tensorflow with GPU support is desired. Instead of creating a setup with CUDA and go through all the installation headache, a pre-made docker image by Tensorflow complete with CUDA and all is used instead. To do this, a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu` is used. 
 
-Next, copy all the stuff required into the docker image by using the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path inside the docker image (The folders will be created automatically if it doesn't exists). So it will look something like `ADD requirements.txt /`. 
+Next, copy all the stuff required into the docker image by using the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path inside the docker image (The folders will be created automatically if it doesn't exists). So it will look something like `ADD requirements.txt /`. _**You may have noticed that in this example, the s3 operations and dataset download operations have been modularise to allow easier configuration**_
 
 The codes won't run without the dependancies. In this example, graphviz and some python packages are quired. To this end, you can use the `RUN` command. For this  example, use `RUN pip3 install -r requirements.txt`. After this is acheived, you may proceed to build the image.
 
