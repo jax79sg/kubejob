@@ -104,7 +104,7 @@ for epochrun in range(epochs):
 ```
 #### _**Introducing bashful**_
 _**[bashful ](https://github.com/wagoodman/bashful) uses a yaml file to stitch together commands and bash snippets and run them, with the flexibility of doing it sequentially or concurrently. The bashful yaml for this example is located in [bashful.yml](bashful.yml). The config node should be reproduced in your own bashful.yml, but you are free to adjust the tasks node. 
-Extract of this example's bashful.yml
+Extract of this example's bashful.yml**_
 ```yaml
 tasks:
     - name: download_datasets
@@ -114,8 +114,8 @@ tasks:
       - cmd: python /image_classification_multi.py --expid 1 --batch_size 128 --image_size_h 30 --image_size_w 30 --buffer_size 128 --dropout 0.50 --epochs 1 --learning_rate 0.01
       - cmd: python /image_classification_multi.py --expid 3 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.30 --epochs 1 --learning_rate 2.80
 ```
-In the above yml, there are 2 main tasks, namely `download_datasets` and `training`. These are by default configured to execute sequentially. In the `training` task, there are 2 parallel sub tasks configured. Its essentially the script to run the training, which provided different hyperparamters. In a seperate test, it is known that each training will take up about 7GB of GPU RAM
-**_
+_**In the above yml, there are 2 main tasks, namely `download_datasets` and `training`. These are by default configured to execute sequentially. In the `training` task, there are 2 parallel sub tasks configured. Its essentially the script to run the training, which provided different hyperparamters. In a separate test, it is known that each training will take up about 7GB of GPU RAM. Thus you may run up to 4 parallel trainings (32mod7). Please note that the env variable TF_FORCE_GPU_ALLOW_GROWTH must be set to True if you are using Tensorflow so that not all the RAM is allocated to one process **_
+
 #### Prepare Dockerfile file
 Now that you have your codes ready and tested locally, its time to dockerize it. Its really easy to create a Docker image, all you need is Docker installed, gather the files you want in the docker image and to create a simple file called Dockerfile. A Dockerfile is declarative, and the commands are only processed after you run `docker build`.
 The following is the Dockerfile for this example.
