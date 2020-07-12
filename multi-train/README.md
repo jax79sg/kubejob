@@ -1,7 +1,7 @@
 # Training a Open Source ML/DL model on AI Platform (Kubernetes) - Part II.
 Part I of this two part article series demonstrates a very simple example that runs a single iteration of a training model. In reality, this is very inefficient as most model training we have doesn't take up an entire GPU resources that the AI Platform offers (V100, 32GB). This article will demonstrate how to better utilise a single V100 GPU when submiting a job to Kubernetes. 
 
-Note that this article can be followed through without going through Part I. The additional remarks are highlighted in _**italic bold**_.
+Note that this article can be followed through without going through Part I. The additional remarks that are unique in Part II are highlighted in _**italic bold**_.
 
 ## Who should try this?
 ### 3rd Parties
@@ -10,7 +10,7 @@ If you have a Deep Learning architecture you got from someone or pulled from ope
 For those who are regularly developing their codes in Docker, this would be very apt for them as well. The advantage of developing DL models in Docker is that they highly flexible when it comes to using different frameworks and versions. For example, you don't have to crack your head on different versions of CUDA on your machine, just make sure you have a docker for every version. Most times, you don't even have to worry about this as the frameworks such as Tensorflow come with their own docker images anyway.
 
 ## What will be achieved at the end of this article?
-This example uses a 3rd party end to end image classification code. The code is customised to download dataset frmo S3 onto itself and also to upload model checkpoints and final results onto S3 after training. By the end of this article, you will get acquainted with very basic use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores.
+This example uses a 3rd party end to end image classification code. The code is customised to download dataset frmo S3 onto itself and also to upload model checkpoints and final results onto S3 after training. By the end of this article, you will get acquainted with very basic use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores. _**This article focused on how multiple training jobs can run at the samee time on the same GPU. While this example is demonstrated via hyperparameter runs, you may adjust your own configuration to perform other actions concurrently**_
 
 ## Overview: Preparation and then the model training
 
@@ -21,10 +21,11 @@ This example uses a 3rd party end to end image classification code. The code is 
 ### On your own computer
 0. Prepare your datasets
 1. Prepare your training codes
-2. Prepare Dockerfile file
-3. Build a docker image
-4. Export/Save the docker image as a file
-5. Transfer to Kubernetes client
+2. _**Introducing bashful**
+3. Prepare Dockerfile file
+4. Build a docker image
+5. Export/Save the docker image as a file_
+6. Transfer to Kubernetes client
 
 ### On the Kubernetes client
 0. Load datasets onto S3
@@ -48,7 +49,7 @@ Your training codes should consist mainly of 3 parts.
 
 Finally make sure your codes can run and train for at least an epoch to verify its working.
 
-A sample of a training code is found in [image_classification_single.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/single-train/image_classification_single.py). The only change to this code to the original is such that the zipped datasets would be downloaded from S3 and then extracted for processing, after training, the model and results are saved in S3. Your situation could be different, please exercise your own considerations. 
+A sample of a training code is found in _**[image_classification_multi.py](https://raw.githubusercontent.com/jax79sg/kubejob/master/multi-train/image_classification_multi.py)**_. The only change to this code to the original is such that the zipped datasets would be downloaded from S3 and then extracted for processing, after training, the model and results are saved in S3. _**Additionally, hyperparameters are received via argparse.**_ Your situation could be different, please exercise your own considerations. 
 
 A temporary MINIO S3 server has been setup in the AI Platform, your training codes should pull and save the data there. The following extracts the related codes from the above example. This setups the helper codes and pulls the relevant parameters about the S3. 
 The parameters are to be sent into the environment variables. You may also hard code the variables if that suits you, but i would encourage you to use either environment variables or argparse.
@@ -101,17 +102,25 @@ for epochrun in range(epochs):
     s3_upload_file(bucket=trainingbucket,localfile='catdogclassification_save_at_'+str(epochrun+1)+'.h5',s3path='')
 
 ```
+#### _**Introducing bashful**_
+_**[bashful ](https://github.com/wagoodman/bashful) uses a yaml file to stitch together commands and bash snippets and run them, with the flexibility of doing it sequentially or concurrently.  **_
 #### Prepare Dockerfile file
 Now that you have your codes ready and tested locally, its time to dockerize it. Its really easy to create a Docker image, all you need is Docker installed, gather the files you want in the docker image and to create a simple file called Dockerfile. A Dockerfile is declarative, and the commands are only processed after you run `docker build`.
 The following is the Dockerfile for this example.
-```Dockerfile
+_**```Dockerfile
 FROM tensorflow/tensorflow:nightly-gpu
 ADD requirements.txt /
-ADD image_classification_single.py / 
 RUN apt update && \
-    apt install -y  software-properties-common build-essential graphviz 
+    apt install -y wget software-properties-common build-essential graphviz 
+RUN wget https://github.com/wagoodman/bashful/releases/download/v0.0.10/bashful_0.0.10_linux_amd64.deb && \
+    dpkg -i bashful_0.0.10_linux_amd64.deb
 RUN pip3 install -r requirements.txt
-```
+ADD image_classification_multi.py /
+ADD s3utility.py /
+ADD download_datasets.py /
+ADD runall.yml /
+ADD runall.sh /
+```**_
 Most Dockerfiles start off with a baseline image. There are a lot of images on [DockerHub](https://hub.docker.com/) and chances are that there's one that fits your purpose. Take for example, in this case the latest Tensorflow with GPU support is desired. Instead of creating a setup with CUDA and go through all the installation headache, a pre-made docker image by Tensorflow complete with CUDA and all is used instead. To do this, a `FROM` command followed by the tag `tensorflow/tensorflow:nightly-gpu` is used. 
 
 Next, copy all the stuff required into the docker image by using the `ADD` command, followed by 2 arguments. The first argument is the path to the file, relative to the location of the Dockerfile file. The second argument is the path inside the docker image (The folders will be created automatically if it doesn't exists). So it will look something like `ADD requirements.txt /`. 
