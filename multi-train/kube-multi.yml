@@ -28,6 +28,8 @@ spec:
              value: s3v4
            - name: region_name
              value: us-east-1
+           - name: TF_FORCE_GPU_ALLOW_GROWTH
+             value: true
            resources:
               requests:
                  cpu: "1"
