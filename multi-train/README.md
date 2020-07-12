@@ -1,7 +1,7 @@
 # Training a Open Source ML/DL model on AI Platform (Kubernetes) - Part II.
 Part I of this two part article series demonstrates a very simple example that runs a single iteration of a training model. In reality, this is very inefficient as most model training we have doesn't take up an entire GPU resources that the AI Platform offers (V100, 32GB). This article will demonstrate how to better utilise a single V100 GPU when submiting a job to Kubernetes. 
 
-Note that this article can be followed through without going through Part I. The additional remarks are highlighted in <span style="color:blue">blue</span>
+Note that this article can be followed through without going through Part I. The additional remarks are highlighted in _**italic bold**_.
 
 ## Who should try this?
 ### 3rd Parties
