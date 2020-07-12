@@ -1,0 +1,67 @@
+
+tasks:
+    - name: download_datasets
+      cmd: python /download_datasets.py
+    - name: training
+      parallel-tasks:
+      - cmd: python /image_classification_multi.py --expid 1 --batch_size 128 --image_size_h 30 --image_size_w 30 --buffer_size 128 --dropout 0.50 --epochs 1 --learning_rate 0.01
+      - cmd: python /image_classification_multi.py --expid 3 --batch_size 64 --image_size_h 30 --image_size_w 30 --buffer_size 64 --dropout 0.30 --epochs 1 --learning_rate 2.80
+      
+
+
+
+config:
+    # which character used to delimintate the task list
+    bullet-char: "-"
+
+    # hide all child tasks after task section completion
+    collapse-on-completion: true
+
+    # change the colors of the vertical progress bar for a task in a particular state.
+    # this should be a number from the 256 color palette.
+    success-status-color: 10
+    running-status-color: 22
+    pending-status-color: 22
+    error-status-color: 160
+
+    # by default the screen is updated when an event occurs (when stdout from
+    # a running process is read). This can be changed to only allow the 
+    # screen to be updated on an interval (to accomodate slower devices).
+    event-driven: false
+
+    # the number of tasks that can run simultaneously
+    max-parallel-commands: 4
+
+    # show/hide the detailed summary of all task failures after completion
+    show-failure-report: true
+
+    # show/hide the last summary line (showing % complete, number of tasks ran, eta, etc)
+    show-summary-footer: false
+
+    # show/hide the number of tasks that have failed in the summary footer line
+    show-summary-errors: false
+
+    # show/hide the number of tasks completed thus far on the summary footer line
+    show-summary-steps: true
+
+    # show/hide the eta and runtime figures on the summary footer line
+    show-summary-times: false
+
+    # globally enable/disable showing the stdout/stderr of each task
+    show-task-output: true
+
+    # Show an eta for each task on the screen (being shown on every line with a command running)
+    show-task-times: false
+
+    # Show only one line of output to the screen (instead of a line per task + a summary line)
+    single-line: true
+
+    # globally enable/disable haulting further execution when any one task fails
+    stop-on-failure: true
+
+    # This is the character/string that is replaced with items listed in the 'for-each' block
+    replica-replace-pattern: '<replace>'
+
+    # time in milliseconds to update each task on the screen (polling interval)
+    update-interval: 250
+
