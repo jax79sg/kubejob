@@ -3,7 +3,7 @@
 |   |   |
 | ------------- | ------------- |
 | **Difficulty**  | ![Normal](../normal40.png)  |
-| **Contact**  | Jax@[Slack](aidevplatform.slack.com) |
+| **Contact**  | Jax@[Slack](https://aidevplatform.slack.com) |
 
 For a lot of us, we have been building and/or training our models on our own GPU enabled machines. Our single GPU enabled machines at best can cater up to 11GB of RAM, while this is sufficient for smaller models, its a challenge if we want to train larger models from scratch (E.g. BERT). Other than the scale, the speed of training on Ti1080s and RTX2080s are limited, so moving the training onto Kubernetes where V100 GPUs are available will significantly improve the above.
 
