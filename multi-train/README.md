@@ -169,72 +169,21 @@ image-classification-multi.                       latest                        
 ```
 At this point, you can run the docker image on your own computer and run the training. This is the closest to which how it will run on kubernetes. Successfullying running this step will ensure that your image will most likely run properly on kubernetes.
 ```bash
-jax@getafix docker run -it --gpus all --env-file env.list image-classification-multi /bin/bash -c "python3 download_datasets.py && python3 /image_classification_multi.py --expid 1 --batch_size 128 --image_size_h 30 --image_size_w 30 --buffer_size 128 --dropout 0.50 --epochs 1 --learning_rate 0.01"
+jax@getafix docker run -it --gpus all --env-file env.list image-classification-multi /bin/bash -c "/bin/bash","-c","stty rows 25 && stty cols 96 && bashful run /bashful.yml"
 ```
 `--gpus all` directs docker to use the GPU (provided nvidia-docker is installed)
 
 `--env-file env.list` loads the environment variables (S3 parameters) into the docker container.
-`python3 download_datasets.py` is the coomand to download the datasets
-`python3 /image_classification_multi.py` is the command to run your training script
+`"/bin/bash","-c","stty rows 25 && stty cols 96` is the command to start a new shell and default the tty dimensions
+`bashful run /bashful.yml` is the command to run the bashful yaml
 
 When you run the command, you would see something like following (*Note that this script ensures only 1 epoch is run for testing sake*)
 ```bash
-2020-07-12 16:38:47.857162: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
-S3 Download s3://datasets/kagglecatsanddogs_3367a.zip to kagglecatsanddogs_3367a.zip
-Deleted 1590 images
-2020-07-12 16:39:02.226387: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
-2.4.0-dev20200705
-Found 23410 files belonging to 2 classes.
-Using 18728 files for training.
-2020-07-12 16:39:05.048221: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
-2020-07-12 16:39:05.060537: E tensorflow/stream_executor/cuda/cuda_driver.cc:314] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
-2020-07-12 16:39:05.060577: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:169] retrieving CUDA diagnostic information for host: a8d685567222
-2020-07-12 16:39:05.060586: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:176] hostname: a8d685567222
-2020-07-12 16:39:05.060998: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:200] libcuda reported version is: 440.100.0
-2020-07-12 16:39:05.061030: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:204] kernel reported version is: 440.100.0
-2020-07-12 16:39:05.061038: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:310] kernel version seems to match DSO: 440.100.0
-2020-07-12 16:39:05.062142: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2020-07-12 16:39:05.092798: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2592000000 Hz
-2020-07-12 16:39:05.094126: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x4537c40 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
-2020-07-12 16:39:05.094144: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
-Found 23410 files belonging to 2 classes.
-Using 4682 files for validation.
-Corrupt JPEG data: 2226 extraneous bytes before marker 0xd9
-2020-07-12 16:39:09.223473: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 20995200 exceeds 10% of free system memory.
-2020-07-12 16:39:09.223473: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 20995200 exceeds 10% of free system memory.
-  1/147 [..............................] - ETA: 0s - loss: 0.7391 - accuracy: 0.42972020-07-12 16:39:09.481679: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 20995200 exceeds 10% of free system memory.
-2020-07-12 16:39:09.481679: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 20995200 exceeds 10% of free system memory.
-  2/147 [..............................] - ETA: 18s - loss: 1.5399 - accuracy: 0.46482020-07-12 16:39:09.722901: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 20995200 exceeds 10% of free system memory.
- 68/147 [============>.................] - ETA: 18s - loss: 0.9734 - accuracy: 0.5172Corrupt JPEG data: 228 extraneous bytes before marker 0xd9
- 75/147 [==============>...............] - ETA: 17s - loss: 0.9506 - accuracy: 0.5203Warning: unknown JFIF revision number 0.00
- 93/147 [=================>............] - ETA: 12s - loss: 0.9125 - accuracy: 0.5267Corrupt JPEG data: 128 extraneous bytes before marker 0xd9
- 95/147 [==================>...........] - ETA: 12s - loss: 0.9088 - accuracy: 0.5274Corrupt JPEG data: 65 extraneous bytes before marker 0xd9
- 97/147 [==================>...........] - ETA: 11s - loss: 0.9048 - accuracy: 0.5286Corrupt JPEG data: 396 extraneous bytes before marker 0xd9
- 99/147 [===================>..........] - ETA: 11s - loss: 0.9021 - accuracy: 0.5286Corrupt JPEG data: 239 extraneous bytes before marker 0xd9
-147/147 [==============================] - ETA: 0s - loss: 0.8442 - accuracy: 0.5474Corrupt JPEG data: 252 extraneous bytes before marker 0xd9
-Corrupt JPEG data: 1153 extraneous bytes before marker 0xd9
-Corrupt JPEG data: 162 extraneous bytes before marker 0xd9
-Corrupt JPEG data: 214 extraneous bytes before marker 0xd9
-Corrupt JPEG data: 99 extraneous bytes before marker 0xd9
-Corrupt JPEG data: 1403 extraneous bytes before marker 0xd9
-147/147 [==============================] - 41s 276ms/step - loss: 0.8442 - accuracy: 0.5474 - val_loss: 0.6860 - val_accuracy: 0.5402
-WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/tensorflow/python/training/tracking/tracking.py:111: Model.state_updates (from tensorflow.python.keras.engine.training) is deprecated and will be removed in a future version.
-Instructions for updating:
-This property should not be used in TensorFlow 2.0, as updates are applied automatically.
-2020-07-12 16:39:51.564416: W tensorflow/python/util/util.cc:348] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
-WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/tensorflow/python/training/tracking/tracking.py:111: Layer.updates (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
-Instructions for updating:
-This property should not be used in TensorFlow 2.0, as updates are applied automatically.
-S3 Uploading 1_catdogclassification.json to s3://training1_catdogclassification.json
-Processing folder
-Processing 1_catdogclassification_model/saved_model.pb
-S3 Uploading 1_catdogclassification_model/saved_model.pb to s3://training1_catdogclassification_model/saved_model.pb
-Processing 1_catdogclassification_model/variables/variables.data-00000-of-00001
-S3 Uploading 1_catdogclassification_model/variables/variables.data-00000-of-00001 to s3://training1_catdogclassification_model/variables/variables.data-00000-of-00001
-Processing 1_catdogclassification_model/variables/variables.index
-S3 Uploading 1_catdogclassification_model/variables/variables.index to s3://training1_catdogclassification_model/variables/variables.index
-S3 Uploading 1_catdogclassification_save_at_1.h5 to s3://training1_catdogclassification_save_at_1.h5
+Running /bashful.yml
+    - download_datasets                                                                         
+    - training                  
+    ⠴ ├─ python /image_classification_multi.py --expid 1 --batch_size 128 --image_size_h 30 -...
+    ⠴ ╰─ python /image_classification_multi.py --expid 3 --batch_size 64 --image_size_h 30 --...
 ```
 #### Export/Save the docker image as a file
 The above steps ensured that you have a running training script that will work on Docker. The next step is to export the docker image so you can transfer it to the Kubernetes client.
