@@ -5,6 +5,8 @@
 | **Difficulty**  | ![Normal](../normal40.png)  |
 | **Contact**  | Jax@[Slack](https://aidevplatform.slack.com) |
 
+**Notice: Due to unforeseen circumstances, this example has yet to be tested on the AI Platform's GPUs. The example you see here are based on CPU runs. Once the example is tested on the platform, this notice will be removed.** 
+
 Part I of this two part article series demonstrates a very simple example that runs a single iteration of a training model. In reality, this is very inefficient as most model training we have doesn't take up an entire GPU resources that the AI Platform offers (V100, 32GB). This article will demonstrate how to better utilise a single V100 GPU when submiting a job to Kubernetes. This example is created based on the possibility to load multiple CUDA programs to run on the same GPU, albeit with questionable speed depending on your model's complexity. (https://stackoverflow.com/questions/31643570/running-more-than-one-cuda-applications-on-one-gpu)
 
 Note that this article can be followed through without going through Part I. The additional remarks that are unique in Part II are highlighted in _**italic bold**_.
@@ -19,6 +21,8 @@ For those who are regularly developing their codes in Docker, this would be very
 This example uses a 3rd party end to end image classification code. The code is customised to download dataset frmo S3 onto itself and also to upload model checkpoints and final results onto S3 after training. By the end of this article, you will get acquainted with very basic use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores. _**This article focused on how multiple training jobs can run at the samee time on the same GPU. While this example is demonstrated via hyperparameter runs, you may adjust your own configuration to perform other actions concurrently**_
 
 ## Overview: Preparation and then the model training
+![Overview](KubernetesTraining.png)
+The above diagram is a visual representation of the steps depicted in this article. Do refer to it if you get lost along the way with the mountain of words.
 
 ### Prerequisites
 1. A client machine configured to connect to the Kubernetes cluster.

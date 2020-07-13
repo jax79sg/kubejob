@@ -17,7 +17,8 @@ For those who are regularly developing their codes in Docker, this would be very
 This example uses a 3rd party end to end image classification code. The code is customised to download dataset frmo S3 onto itself and also to upload model checkpoints and final results onto S3 after training. By the end of this article, you will get acquainted with very basic use of Docker and Kubernetes. You would be able to submit jobs to Kubernetes and get the results from S3 object stores.
 
 ## Overview: Preparation and then the model training
-
+![Overview](KubernetesTraining.png)
+The above diagram is a visual representation of the steps depicted in this article. Do refer to it if you get lost along the way with the mountain of words.
 ### Prerequisites
 1. A client machine configured to connect to the Kubernetes cluster.
 2. Docker installed on your own computer (Both Windows and Linux versions are fine)
@@ -377,7 +378,7 @@ S3 Uploading catdogclassification_save_at_1.h5 to s3://trainingcatdogclassificat
 ```
 
 ## What's next
-The above is a very simple example to demonstrate the use of Docker and Kubernetes. However, running a single training on a 32GB V100 GPU card is not efficient and running as a pod directly is not typical. The next article [Part II](https://github.com/jax79sg/kubejob/multi-train/README.md) demonstrates how this same example can be enhanced to support some form of hyperparameter tuning (E.g. Running several training jobs with different hyperparamters concurrently, as long as the total GPU ram is not exceeded).
+The above is a very simple example to demonstrate the use of Docker and Kubernetes. However, running a single training on a 32GB V100 GPU card is not efficient and running as a pod directly is not typical. The next article [Part II](https://github.com/jax79sg/kubejob/edit/master/multi-train/README.md) demonstrates how this same example can be enhanced to support some form of hyperparameter tuning (E.g. Running several training jobs with different hyperparamters concurrently, as long as the total GPU ram is not exceeded).
 
 ## Call for contribution
 The above example is one of many possible ways to utilise Kubernetes for our AI development. If you have an interesting idea, please feel free to share it on our Slack page.
