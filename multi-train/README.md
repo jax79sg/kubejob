@@ -1,4 +1,10 @@
 # Training a Open Source ML/DL model on AI Platform (Kubernetes) - Part II.
+
+|   |   |
+| ------------- | ------------- |
+| **Difficulty**  | ![Normal](../normal40.png)  |
+| **Contact**  | Jax@[Slack](https://aidevplatform.slack.com) |
+
 Part I of this two part article series demonstrates a very simple example that runs a single iteration of a training model. In reality, this is very inefficient as most model training we have doesn't take up an entire GPU resources that the AI Platform offers (V100, 32GB). This article will demonstrate how to better utilise a single V100 GPU when submiting a job to Kubernetes. This example is created based on the possibility to load multiple CUDA programs to run on the same GPU, albeit with questionable speed depending on your model's complexity. (https://stackoverflow.com/questions/31643570/running-more-than-one-cuda-applications-on-one-gpu)
 
 Note that this article can be followed through without going through Part I. The additional remarks that are unique in Part II are highlighted in _**italic bold**_.
