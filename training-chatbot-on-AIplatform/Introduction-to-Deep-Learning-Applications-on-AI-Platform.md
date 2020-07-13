@@ -1,5 +1,5 @@
 # AI Platform Advanced Developers Tutorial 1
-### Training Deep Learning Algorithms using Kubernetes on the AI Platform <br> By Jadle@Slack
+### Training Deep Learning Algorithms using Kubernetes on the AI Platform <br> By Jadle@[Slack](https://aidevplatform.slack.com)
 
 ### Overview of Article
 
